@@ -1,0 +1,43 @@
+version:               '3'
+
+
+services:
+#tensorflow
+  deeplearning:
+      image:           digitalanatomist/deeplearning-tensorboard
+      #devices:        # -->remember this is needed for nvidia-docker version 1
+      #  - /dev/nvidiactl
+        #- /dev/nvidia-uvm
+      #  - /dev/nvidia0 #in general: /dev/nvidia# where # depends on which gpu card is wanted to be used
+      deploy:
+        placement:
+          constraints: [node.role == manager]
+      ports:
+        - "5000:5000"
+        - "8888:8888"
+        - "6006:6006"
+
+      logging:
+        driver:        "json-file"
+
+      networks:
+        - network
+      volumes:
+        - "./notebooks:/notebooks" #--> this is my workingdirectory and folder from host to container mapping use what ever you want
+        #- "nvidia_driver_387.34:/usr/local/nvidia:ro"  -->remember this is needed for nvidia-docker version 1
+      environment:
+        - NVIDIA_VISIBLE_DEVICES all
+        - NVIDIA_DRIVER_CAPABILITIES compute,utility
+
+## Driver Volume for CUDA Version -->remember this is needed for nvidia-docker version 1
+#volumes:
+#  nvidia_driver_387.34:
+  #  external:         true
+
+networks:
+  network:
+    driver:            overlay
+    ipam:
+      driver:          default
+      config:
+        - subnet:      120.00.000.0/24
